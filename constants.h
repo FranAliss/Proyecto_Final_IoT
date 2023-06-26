@@ -1,0 +1,123 @@
+#ifndef CONSTANTS_H
+#define CONSTANTS_H
+
+#include "analogWrite.h"
+#include <WiFiClientSecure.h>
+#include <PubSubClient.h>
+#include <ArduinoJson.h>
+#include <BH1750.h>
+#include <Wire.h>
+#include <WiFiManager.h>
+
+const int LED_PIN = 13;
+
+const char* MQTT_BROKER = "a21zlrv19lci68-ats.iot.us-east-2.amazonaws.com";
+const int MQTT_BROKER_PORT = 8883;
+
+const char* MQTT_CLIENT_ID = "ESP32_1";
+
+const char* GET_ACCEPTED_TOPIC = "$aws/things/NodeMCU/shadow/get/accepted";
+const char* GET_TOPIC = "$aws/things/NodeMCU/shadow/get";
+
+const char* GET_UPDATED = "$aws/things/NodeMCU/shadow/update";
+const char* GET_UPDATED_ACCEPTED = "$aws/things/NodeMCU/shadow/update/accepted";
+
+const char AMAZON_ROOT_CA1[] PROGMEM = R"EOF(
+-----BEGIN CERTIFICATE-----
+MIIDQTCCAimgAwIBAgITBmyfz5m/jAo54vB4ikPmljZbyjANBgkqhkiG9w0BAQsF
+ADA5MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRkwFwYDVQQDExBBbWF6
+b24gUm9vdCBDQSAxMB4XDTE1MDUyNjAwMDAwMFoXDTM4MDExNzAwMDAwMFowOTEL
+MAkGA1UEBhMCVVMxDzANBgNVBAoTBkFtYXpvbjEZMBcGA1UEAxMQQW1hem9uIFJv
+b3QgQ0EgMTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALJ4gHHKeNXj
+ca9HgFB0fW7Y14h29Jlo91ghYPl0hAEvrAIthtOgQ3pOsqTQNroBvo3bSMgHFzZM
+9O6II8c+6zf1tRn4SWiw3te5djgdYZ6k/oI2peVKVuRF4fn9tBb6dNqcmzU5L/qw
+IFAGbHrQgLKm+a/sRxmPUDgH3KKHOVj4utWp+UhnMJbulHheb4mjUcAwhmahRWa6
+VOujw5H5SNz/0egwLX0tdHA114gk957EWW67c4cX8jJGKLhD+rcdqsq08p8kDi1L
+93FcXmn/6pUCyziKrlA4b9v7LWIbxcceVOF34GfID5yHI9Y/QCB/IIDEgEw+OyQm
+jgSubJrIqg0CAwEAAaNCMEAwDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMC
+AYYwHQYDVR0OBBYEFIQYzIU07LwMlJQuCFmcx7IQTgoIMA0GCSqGSIb3DQEBCwUA
+A4IBAQCY8jdaQZChGsV2USggNiMOruYou6r4lK5IpDB/G/wkjUu0yKGX9rbxenDI
+U5PMCCjjmCXPI6T53iHTfIUJrU6adTrCC2qJeHZERxhlbI1Bjjt/msv0tadQ1wUs
+N+gDS63pYaACbvXy8MWy7Vu33PqUXHeeE6V/Uq2V8viTO96LXFvKWlJbYK8U90vv
+o/ufQJVtMVT8QtPHRh8jrdkPSHCa2XV4cdFyQzR1bldZwgJcJmApzyMZFo6IQ6XU
+5MsI+yMRQ+hDKXJioaldXgjUkK642M4UwtBV8ob2xJNDd2ZhwLnoQdeXeGADbkpy
+rqXRfboQnoZsG4q5WTP468SQvvG5
+-----END CERTIFICATE-----
+)EOF";
+
+const char CERTIFICATE[] PROGMEM = R"KEY(
+-----BEGIN CERTIFICATE-----
+MIIDWTCCAkGgAwIBAgIUciVRrDRUNW+9m61dL22Ycjcwcx0wDQYJKoZIhvcNAQEL
+BQAwTTFLMEkGA1UECwxCQW1hem9uIFdlYiBTZXJ2aWNlcyBPPUFtYXpvbi5jb20g
+SW5jLiBMPVNlYXR0bGUgU1Q9V2FzaGluZ3RvbiBDPVVTMB4XDTIzMDQxOTIzNDUx
+NVoXDTQ5MTIzMTIzNTk1OVowHjEcMBoGA1UEAwwTQVdTIElvVCBDZXJ0aWZpY2F0
+ZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAM/Aoem+0PAQhm8mc7K9
+y3jGD87H8gDcGtUbOraES0yDdFv2TaFEkMnH1fs+ddPBhfjBTIfDeL/rYw7V99r4
+EVo1f50dELHRV+jNkEMlwAKeMuAGmkSmx9RfkWu6/CeEOMmdtN9IlOroZNcPp1Hf
+3HQVQNWcDQYeW8J/Y2RcqzsdthWactszyE2eWV6p/0BSsUX+ScseNL4iA0wPDwXX
+gf1qAmfP9gFu3F9EpHW33aFxSVrU+rFYeFBNinUvX+/ILnaLGynSMRUFIMgE7JT8
+7KRVPOB0medPqfCOer4rVLCSxwNtgPZWivQX0Mnyi5a023gHffIHDUOIj/P0CgOH
+Nr8CAwEAAaNgMF4wHwYDVR0jBBgwFoAU1uLYaU+FA0G19Pd1MhJik/bu93swHQYD
+VR0OBBYEFCzFdqp/C+JXTiHz3owBqqJrO37+MAwGA1UdEwEB/wQCMAAwDgYDVR0P
+AQH/BAQDAgeAMA0GCSqGSIb3DQEBCwUAA4IBAQDXU5ASuNikJWXgJ6JY24z79fWv
+6d/kLzo7Tk5KsP6hlvPJOONQpRYlcORFdmHdSsmq6dVxvsxP7/Z1Bx/p8R+cHmJi
+hr+d4Cqxmg0gOhXHuFYTe/xxfKn3qghjZbnOUi7/RvCHcGrJb4rs31ASPlhmjPxq
+POkhZBW8Q3acqprgsCEqmwx8kF5aVy2U/ZHfDbB4fz1Owy0sAly+/0FtAkyRW7Ks
+uxU86BA2Vk1zVn4iiyvd7GHlBR3BcNfXkl1BkG4N6AUv16aSH/m60H1QX1Jj/Xd3
+WmrwL6TEqVoK0O+p84R4hKMpsjIIQObO9o8uQ2/Ihp+iXirWVQNDwoOfoEbi
+-----END CERTIFICATE-----
+)KEY";
+
+const char PRIVATE_KEY[] PROGMEM = R"KEY(
+-----BEGIN RSA PRIVATE KEY-----
+MIIEpAIBAAKCAQEAz8Ch6b7Q8BCGbyZzsr3LeMYPzsfyANwa1Rs6toRLTIN0W/ZN
+oUSQycfV+z5108GF+MFMh8N4v+tjDtX32vgRWjV/nR0QsdFX6M2QQyXAAp4y4Aaa
+RKbH1F+Ra7r8J4Q4yZ2030iU6uhk1w+nUd/cdBVA1ZwNBh5bwn9jZFyrOx22FZpy
+2zPITZ5ZXqn/QFKxRf5Jyx40viIDTA8PBdeB/WoCZ8/2AW7cX0SkdbfdoXFJWtT6
+sVh4UE2KdS9f78gudosbKdIxFQUgyATslPzspFU84HSZ50+p8I56vitUsJLHA22A
+9laK9BfQyfKLlrTbeAd98gcNQ4iP8/QKA4c2vwIDAQABAoIBAQCFPqZaFaFKJz8h
+sMbJ4ALNTjK7S/AB7yliftlUUFs/EpyhksJNaX13fSzXvEKz8s3rMobUGGGsrdrV
+nBQgo7P1aJSVfxvDAGJilN0uw9p3k2FL39A3scQ+iKDrOH0bFymY3gYwowun8i8i
+5A5La8mnxi3UEwcjYns1rqBfsTO9cHOfBXDy2DcM6Y5WrkpFQm7WlO92QeQzZ00T
+3pANAgf+D6tmeYzt6XUHT/rfrPUux0h+Qi5e0AURxvJCc2q3gVS8BoVVr5fS1C12
+8onM8FZQw/TGKINMAgzbwhbxgM/E3sRgK7j6YV0/Nrsoj3JUElTzztKcL4S0wMYa
+5SHW7m0RAoGBAPOyaq/oSD4bwuYhJjdotHXU1aP/s6G6t5nxXPRow1HHt5MYiStt
+DmXYBQNFhZyE+3Q1RHdMMXBhpAx2m5u7tcAKAO7MxX8y1FivEaNeoq5BPTWTwFXA
+BiuOmT2DdUJiPZrnthmbPYjqQnb+6FbB6xMT/rKIcR8F+7WsVNTV7fIZAoGBANo9
+qbRqVBhjRX7fIh7aa+f8BcFSgBnqQlCuShRa76CYqCB/kvluPfw9UQXY5yK0AZUd
+UF1ieGThQcPz+1byfuzagFXD3no22Qv/yNloLwrl1HIQh1vJjxovBhlwL9elCgn6
+TbimjNtS7+7totPkdHYjaoBMgMLIjLgzGgql6fqXAoGAD15QFhna/He5udObWmEz
+CD9M3dPRW0CwNXggOZWlw7GJpTAl7mQpRUjzP/qRa4aDaRe24qMedwzhUJvmQlL7
+Kko3NtgZGGV3OMSJozjjn4OjvY480euTOAn9JgD1UyNo6Sz1sfW1Ur4bRO/cbSQ7
+k+9t34p1P9SbxCBDFU0MfXkCgYEAz831QJAaQRqNes/2ilBKfRtxU3I9/e8cc/xx
+F067azzQohk3loANT5gHBT1SYK3r79N4yWLQ5qXCXFZ+FX1TtC4eEwwtVEvTgeRt
+l+3nFUZgcrggWxriQvlRonk7ZOeGVpfa157m8pPXWLc32vFmn3L7nuy5kj8qFt65
+xjfTQkMCgYAGMPbfZ/Susfxuz9mc6wwmW8Uerej2FhkkOepy/VZ+lIaI4nsHaBA5
+4HBqqCF6d8bSFIqbc4+G0l1Z4/CH1F/qZN9qLFx1mzAD30IHt3fLaHM4Y6C9l6Ev
+Q5R/G7uYmOsWy8LUWRG6229/1lDDCzQA7yWJ+eASzJMeWftSlRND3Q==
+-----END RSA PRIVATE KEY-----
+)KEY";
+
+float lightEmitted(float lux){
+  float quantity = 255 - (lux / 255);
+  if (lux > 2000){
+    quantity = 0;
+  } 
+  if (lux < 80){
+    quantity = 255;
+  } 
+  if (lux > 80 && lux < 2000){
+    quantity = 60;
+  }
+  return quantity;
+}
+
+String getMqttMessage(byte* payload,unsigned int length){
+  String message;
+  for (unsigned int i = 0; i < length; i++) {
+    message += (char)payload[i];
+  }
+  return message;
+}
+
+#endif
